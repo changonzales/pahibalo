@@ -32,6 +32,7 @@
             transition: opacity 0.8s ease;
         }
 
+        /* Screens */
         #intro-screen { background-color: #ff4d6d; color: white; z-index: 3; }
         #message-screen { background-color: #ff758f; color: white; z-index: 2; opacity: 0; pointer-events: none; }
 
@@ -39,50 +40,69 @@
             opacity: 0;
             transition: opacity 1s ease;
             background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 350px;
-            width: 90%;
+            padding: 40px 20px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            max-width: 400px;
+            width: 85%;
             z-index: 1;
+            pointer-events: none;
         }
 
         .celebration-gif {
             width: 100%;
-            max-width: 200px;
+            max-width: 180px;
             border-radius: 15px;
-            margin: 10px auto 20px auto;
+            margin-bottom: 20px;
             display: none;
         }
 
-        h1, h2 { margin-bottom: 20px; font-size: 1.5rem; color: #d63384; }
+        h1, h2 { margin-bottom: 20px; font-size: 1.6rem; color: #d63384; }
         #intro-screen h2, #message-screen h1 { color: white; }
         
         button {
-            padding: 15px 25px;
+            padding: 15px 30px;
             font-size: 1.1rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
+            transition: transform 0.1s ease;
         }
 
-        .primary-btn { background: white; color: #ff4d6d; border-radius: 50px; }
-        #yesBtn { background-color: #ff4d6d; color: white; }
-        #noBtn { background-color: #6c757d; color: white; }
+        .primary-btn { 
+            background: white; 
+            color: #ff4d6d; 
+            border-radius: 50px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-        /* THIS KEEPS THEM BESIDE EACH OTHER */
+        .lower-btn {
+            margin-top: 50px;
+        }
+
         .btn-group {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 25px;
+            margin-top: 30px;
+            position: relative;
             min-height: 60px;
-            width: 100%;
         }
 
-        .heart { color: #ff4d6d; font-size: 3rem; margin-bottom: 10px; }
+        #yesBtn { background-color: #ff4d6d; color: white; }
+        
+        #noBtn { 
+            background-color: #6c757d; 
+            color: white; 
+            position: relative;
+            z-index: 999;
+            /* Smooth sliding effect */
+            transition: left 0.3s ease, top 0.3s ease; 
+        }
+
+        .heart { color: #ff4d6d; font-size: 3.5rem; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -94,7 +114,7 @@
 
     <div id="message-screen" class="screen">
         <h1 style="font-style: italic;">"Wa nay daghang pasundayag..."</h1>
-        <button class="primary-btn" onclick="showProposal()">Continue ➡️</button>
+        <button class="primary-btn lower-btn" onclick="showProposal()">Continue ➡️</button>
     </div>
 
     <div id="proposal-container">
@@ -106,17 +126,20 @@
         
         <div class="btn-group" id="button-area">
             <button id="yesBtn" onclick="celebrate()">Yes!</button>
-            <button id="noBtn" onmouseover="moveButton()" onclick="moveButton()">Neeeveerrrr!</button>
+            <button id="noBtn" onclick="handleNoClick()" onmouseenter="handleNoHover()">Neeeveerrrr!</button>
         </div>
     </div>
 
     <script>
+        let canMove = false;
+        let hasBeenClickedOnce = false;
+
         function showNext(currentId, nextId) {
             document.getElementById(currentId).style.opacity = '0';
             document.getElementById(currentId).style.pointerEvents = 'none';
             setTimeout(() => {
                 const next = document.getElementById(nextId);
-                next.style.opacity = '1';
+                next.style.opacity = '0.5';
                 next.style.pointerEvents = 'auto';
             }, 400);
         }
@@ -124,34 +147,62 @@
         function showProposal() {
             document.getElementById('message-screen').style.opacity = '0';
             document.getElementById('message-screen').style.pointerEvents = 'none';
+            
             setTimeout(() => {
-                document.getElementById('proposal-container').style.opacity = '1';
+                const container = document.getElementById('proposal-container');
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+
+                // Prevent immediate movement until animation settles
+                setTimeout(() => {
+                    canMove = true;
+                }, 1000);
             }, 600);
         }
 
         function moveButton() {
+            if (!canMove) return;
+
             const btn = document.getElementById('noBtn');
-            // It only becomes 'fixed' once she tries to click it
             btn.style.position = 'fixed'; 
-            const x = Math.random() * (window.innerWidth - 100);
-            const y = Math.random() * (window.innerHeight - 50);
-            btn.style.left = x + 'px';
-            btn.style.top = y + 'px';
+            
+            // Random position within viewport minus button size
+            const maxX = window.innerWidth - btn.offsetWidth - 20;
+            const maxY = window.innerHeight - btn.offsetHeight - 20;
+            
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+            
+            btn.style.left = randomX + 'px';
+            btn.style.top = randomY + 'px';
+        }
+
+        // Logic for the first click
+        function handleNoClick() {
+            if (!hasBeenClickedOnce) {
+                hasBeenClickedOnce = true;
+                moveButton();
+            }
+        }
+
+        // Logic for hover (only works after first click)
+        function handleNoHover() {
+            if (hasBeenClickedOnce) {
+                moveButton();
+            }
         }
 
         function celebrate() {
-            document.getElementById('question').innerHTML = "Yay! See you on the 14th! 🥰";
+            document.getElementById('question').innerHTML = "Yeey! See you on the 14th! I love you! 😘";
             document.getElementById('button-area').style.display = 'none';
             document.getElementById('main-heart').innerHTML = "💖✨🎉";
             
             const gif = document.getElementById('val-gif');
-            gif.style.display = 'block';
+            gif.style.display = 'inline-block';
             
             document.body.style.backgroundColor = "#ffb3c1";
             document.body.style.transition = "background-color 1s ease";
         }
     </script>
 </body>
-
 </html>
-
